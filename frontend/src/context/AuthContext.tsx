@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../services/api';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -27,15 +26,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isLoaded = true;
 
   useEffect(() => {
-    // Initial login sync with backend
-    api.login(user.email, 'password')
-      .then((data) => {
-        if (data?.user) {
-          setUser(data.user);
-          localStorage.setItem('ma_ims_user', JSON.stringify(data.user));
-        }
-      })
-      .catch((e) => console.warn('Local auth sync info:', e));
+    // Sync session state from storage
+    const saved = localStorage.getItem('ma_ims_user');
+    if (saved) {
+      try {
+        setUser(JSON.parse(saved));
+      } catch {
+        setUser(DEFAULT_USER);
+      }
+    }
   }, []);
 
   const switchRole = async (role: User['role'], category?: string) => {
@@ -56,16 +55,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name = 'Marcus Brody (Service Manager)';
     }
 
-    try {
-      const res = await api.login(email, 'password');
-      if (res?.user) {
-        setUser(res.user);
-      } else {
-        setUser({ id: Date.now(), name, email, role, support_category: category });
-      }
-    } catch {
-      setUser({ id: Date.now(), name, email, role, support_category: category });
-    }
+    const updatedUser: User = {
+      id: Date.now(),
+      name,
+      email,
+      role,
+      support_category: category,
+      department: category ? `${category.toUpperCase()} Support` : 'IT Operations',
+    };
+
+    setUser(updatedUser);
+    localStorage.setItem('ma_ims_user', JSON.stringify(updatedUser));
   };
 
   const logout = () => {

@@ -170,6 +170,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      {/* Prominent Call to Action (CTA) Banner */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-indigo-950/40 border border-emerald-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-1.5 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start space-x-2 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider">
+            <Cpu className="w-4 h-4" />
+            <span>Instant Auto-Healing Available</span>
+          </div>
+          <h2 className="text-lg md:text-xl font-black text-white tracking-tight">
+            Encountering a System Outage, Slow Query, or Hardware Fault?
+          </h2>
+          <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+            Submit your incident symptoms. The User Agent and Incident Agent will evaluate 4-tuple OWL ontology concepts, match against historical IMDB solutions, and auto-heal the service in real-time.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={onOpenCreateModal}
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 transition-all transform hover:scale-[1.02] cursor-pointer"
+          >
+            <span>+ Report Incident (AI Triage)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigateTab('ontology')}
+            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700 transition-colors cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Explore OWL Ontology</span>
+          </button>
+        </div>
+      </div>
+
       {/* Incident Queue & Category Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Incident Feed */}
