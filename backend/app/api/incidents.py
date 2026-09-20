@@ -1,233 +1,258 @@
-import sys
-import os
+"""
+Incidents API Router — ITIL Incident Lifecycle.
+Handles incident submission via User Agent, retrieval, matchmaking results,
+resolution via Support Agent, closure, and audit history.
+"""
 import datetime
-
-# Ensure project root is in sys.path
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-if root_dir not in sys.path:
-    sys.path.insert(0, root_dir)
-
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional, List
-from pydantic import BaseModel
+from sqlalchemy import desc
+
 from app.core.database import get_db
-from app.models.database import Incident, User, RemediationAction, AuditLog
-from app.schemas.incidents import IncidentCreate, IncidentDetailResponse, IncidentListResponse
-from app.agents.orchestrator import orchestrator
-from app.agents.learning_agent import learning_agent
-from remediation.scripts.executor import remediation_executor
+from app.models.imdb import IncidentRecord, IncidentSolution
+from app.models.audit import AuditLog
+from app.models.users import User
+from app.schemas.incidents import (
+    IncidentCreate,
+    IncidentUpdate,
+    IncidentDetailResponse,
+    IncidentSubmissionResult,
+    SolutionCreate,
+    AuditLogOut,
+)
+from app.agents.user_agent import user_agent
+from app.agents.incident_agent import incident_agent
+from app.agents.support_agent import get_support_agent
+from app.ontology.matchmaker import get_matchmaker
 
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
 
-class IncidentUpdatePayload(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    priority: Optional[str] = None
-    severity: Optional[str] = None
-    category: Optional[str] = None
-    status: Optional[str] = None
-    assigned_team: Optional[str] = None
 
-@router.post("", response_model=IncidentDetailResponse)
-def create_incident(payload: IncidentCreate, db: Session = Depends(get_db)):
-    """CREATE: Ingest new incident and trigger AI Agent identification & triage pipeline."""
-    reporter = db.query(User).filter(User.email == payload.reporter_email).first()
-    if not reporter:
-        reporter = User(name="Operations Engineer", email=payload.reporter_email, role="Engineer")
-        db.add(reporter)
-        db.commit()
-        db.refresh(reporter)
+@router.post("", response_model=IncidentSubmissionResult)
+def submit_incident(payload: IncidentCreate, db: Session = Depends(get_db)):
+    """
+    User Agent: Submit new incident via Web GUI (FR-3).
+    Triggers IMDB XML persistence, OWL semantic matchmaking, and solution reuse/routing.
+    """
+    reporter = None
+    if payload.reporter_email:
+        reporter = db.query(User).filter(User.email == payload.reporter_email).first()
 
-    count = db.query(Incident).count()
-    inc_id = f"INC-{1001 + count}"
+    reporter_id = reporter.id if reporter else None
 
-    incident = Incident(
-        id=inc_id,
-        title=payload.title,
+    # Construct incident query via User Agent
+    query_payload = user_agent.create_incident_query(
+        object_tag=payload.object_tag,
+        type_tag=payload.type_tag,
+        service_tag=payload.service_tag,
+        problem_tag=payload.problem_tag,
         description=payload.description,
-        service=payload.service,
-        environment=payload.environment,
-        source=payload.source,
-        reporter_id=reporter.id,
-        status="NEW"
+        reporter_id=reporter_id,
     )
-    db.add(incident)
-    db.commit()
 
-    # Automatically identify symptoms & perform AI triage
-    updated_incident = orchestrator.analyze_and_triage_incident(db, inc_id)
-    return updated_incident
+    # Process query through Incident Agent
+    result = incident_agent.process_incident_query(query_payload, db)
+    return IncidentSubmissionResult(**result)
 
-@router.get("", response_model=IncidentListResponse)
+
+@router.get("", response_model=List[IncidentDetailResponse])
 def list_incidents(
-    status: Optional[str] = None,
-    priority: Optional[str] = None,
-    category: Optional[str] = None,
-    search: Optional[str] = None,
-    db: Session = Depends(get_db)
+    status: Optional[str] = Query(None),
+    priority: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
 ):
-    """READ: Retrieve and filter incidents queue."""
-    query = db.query(Incident)
+    """List all incidents with optional filtering by status, priority, or category."""
+    query = db.query(IncidentRecord)
+
     if status:
-        query = query.filter(Incident.status == status)
+        query = query.filter(IncidentRecord.status == status)
     if priority:
-        query = query.filter(Incident.priority == priority)
+        query = query.filter(IncidentRecord.priority == priority)
     if category:
-        query = query.filter(Incident.category == category)
+        query = query.filter(IncidentRecord.assigned_support_category == category)
     if search:
+        search_fmt = f"%{search}%"
         query = query.filter(
-            (Incident.title.contains(search)) |
-            (Incident.description.contains(search)) |
-            (Incident.id.contains(search))
+            (IncidentRecord.title.ilike(search_fmt))
+            | (IncidentRecord.description.ilike(search_fmt))
+            | (IncidentRecord.id.ilike(search_fmt))
         )
-    
-    incidents = query.order_by(Incident.created_at.desc()).all()
-    return {"incidents": incidents, "total": len(incidents)}
 
-@router.get("/{id}", response_model=IncidentDetailResponse)
-def get_incident(id: str, db: Session = Depends(get_db)):
-    """READ: Fetch complete incident detail including AI Analysis, Evidence, and Remediation."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
-    return incident
+    incidents = query.order_by(desc(IncidentRecord.created_at)).limit(limit).all()
+    return incidents
 
-@router.put("/{id}", response_model=IncidentDetailResponse)
-def update_incident(id: str, payload: IncidentUpdatePayload, db: Session = Depends(get_db)):
-    """UPDATE: Update incident properties (title, priority, status, assigned team)."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
 
-    if payload.title is not None:
-        incident.title = payload.title
-    if payload.description is not None:
-        incident.description = payload.description
-    if payload.priority is not None:
-        incident.priority = payload.priority
-    if payload.severity is not None:
-        incident.severity = payload.severity
-    if payload.category is not None:
-        incident.category = payload.category
-    if payload.status is not None:
-        incident.status = payload.status
-        if payload.status == "RESOLVED" and not incident.resolved_at:
-            incident.resolved_at = datetime.datetime.utcnow()
-            learning_agent.promote_incident_to_knowledge(db, incident)
-    if payload.assigned_team is not None:
-        incident.assigned_team = payload.assigned_team
+@router.get("/{incident_id}", response_model=IncidentDetailResponse)
+def get_incident(incident_id: str, db: Session = Depends(get_db)):
+    """Get complete details of an incident including solutions and audit trail."""
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
+    return inc
 
-    incident.updated_at = datetime.datetime.utcnow()
 
-    db.add(AuditLog(
-        incident_id=id,
-        action="INCIDENT_UPDATED",
-        details=f"Incident {id} fields updated manually."
-    ))
+@router.put("/{incident_id}", response_model=IncidentDetailResponse)
+def update_incident(incident_id: str, payload: IncidentUpdate, db: Session = Depends(get_db)):
+    """Update fields on an existing incident."""
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
+
+    updated_fields = []
+    if payload.status:
+        inc.status = payload.status
+        updated_fields.append(f"status -> {payload.status}")
+    if payload.priority:
+        inc.priority = payload.priority
+        updated_fields.append(f"priority -> {payload.priority}")
+    if payload.severity:
+        inc.severity = payload.severity
+        updated_fields.append(f"severity -> {payload.severity}")
+    if payload.impact:
+        inc.impact = payload.impact
+        updated_fields.append(f"impact -> {payload.impact}")
+    if payload.urgency:
+        inc.urgency = payload.urgency
+        updated_fields.append(f"urgency -> {payload.urgency}")
+    if payload.assigned_support_category:
+        inc.assigned_support_category = payload.assigned_support_category
+        updated_fields.append(f"assigned_team -> {payload.assigned_support_category}")
+
+    if updated_fields:
+        db.add(
+            AuditLog(
+                incident_id=inc.id,
+                agent_name="UserAgent",
+                action="INCIDENT_UPDATED",
+                details="Updated: " + ", ".join(updated_fields),
+            )
+        )
+        db.commit()
+        db.refresh(inc)
+
+    return inc
+
+
+@router.delete("/{incident_id}")
+def delete_incident(incident_id: str, db: Session = Depends(get_db)):
+    """Delete an incident."""
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
+    db.delete(inc)
     db.commit()
-    db.refresh(incident)
-    return incident
+    return {"message": f"Incident {incident_id} deleted successfully."}
 
-@router.delete("/{id}")
-def delete_incident(id: str, db: Session = Depends(get_db)):
-    """DELETE: Remove incident from system."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
 
-    db.delete(incident)
-    db.add(AuditLog(
-        incident_id=id,
-        action="INCIDENT_DELETED",
-        details=f"Incident {id} deleted from queue."
-    ))
+@router.post("/{incident_id}/resolve")
+def resolve_incident(
+    incident_id: str,
+    payload: SolutionCreate,
+    db: Session = Depends(get_db),
+):
+    """
+    Support Agent: Submit resolution for incident (FR-17).
+    Saves solution to IMDB for future semantic matchmaking reuse and marks resolved.
+    """
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
+
+    support_agent = get_support_agent(inc.assigned_support_category)
+    result = support_agent.resolve_incident(
+        incident_id=incident_id,
+        solution_text=payload.solution_text,
+        staff_name=payload.staff_name,
+        db=db,
+    )
+    return result
+
+
+@router.post("/{incident_id}/close")
+def close_incident(incident_id: str, db: Session = Depends(get_db)):
+    """Final ITIL closure of incident record."""
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
+
+    inc.status = "closed"
+    inc.closed_at = datetime.datetime.utcnow()
+
+    db.add(
+        AuditLog(
+            incident_id=inc.id,
+            agent_name="IncidentAgent",
+            action="INCIDENT_CLOSED",
+            details="Incident closed with verified resolution.",
+        )
+    )
     db.commit()
-    return {"status": "success", "message": f"Incident {id} deleted successfully", "deleted_id": id}
+    db.refresh(inc)
+    return {"incident_id": inc.id, "status": "closed", "closed_at": inc.closed_at}
 
-@router.post("/{id}/analyze", response_model=IncidentDetailResponse)
-def reanalyze_incident(id: str, db: Session = Depends(get_db)):
-    """SOLVE / IDENTIFY: Re-trigger AI Multi-Agent analysis pipeline."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
-    return orchestrator.analyze_and_triage_incident(db, id)
 
-@router.post("/{id}/remediation/approve")
-def approve_remediation(id: str, db: Session = Depends(get_db)):
-    """SOLVE: Human-in-the-Loop approval for pending remediation action."""
-    remediation = db.query(RemediationAction).filter(RemediationAction.incident_id == id).first()
-    if not remediation:
-        raise HTTPException(status_code=404, detail="No remediation action found for this incident")
+@router.get("/{incident_id}/matches")
+def get_incident_matches(incident_id: str, db: Session = Depends(get_db)):
+    """
+    Run semantic matchmaking for an incident against all other stored incidents.
+    Returns Exact Incident Table and Possible Incident Table with scores.
+    """
+    inc = db.query(IncidentRecord).filter(IncidentRecord.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found.")
 
-    remediation.approval_status = "APPROVED"
-    db.add(AuditLog(
-        incident_id=id,
-        action="HUMAN_APPROVAL_GRANTED",
-        details=f"Remediation '{remediation.action_name}' approved by engineer."
-    ))
-    db.commit()
-    return {"status": "success", "message": "Remediation approved successfully", "approval_status": "APPROVED"}
-
-@router.post("/{id}/remediation/execute")
-def execute_remediation(id: str, db: Session = Depends(get_db)):
-    """SOLVE: Execute remediation action via Safety Execution Sandbox & mark resolved."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    remediation = db.query(RemediationAction).filter(RemediationAction.incident_id == id).first()
-    if not remediation:
-        raise HTTPException(status_code=404, detail="Remediation record not found")
-
-    tool_name = "restart_service"
-    if "Cache" in remediation.action_name or "Connection" in remediation.action_name:
-        tool_name = "clear_cache"
-    elif "Scale" in remediation.action_name or "Memory" in remediation.action_name:
-        tool_name = "scale_container"
-
-    exec_res = remediation_executor.execute_remediation(
-        tool_name=tool_name,
-        target_service=incident.service,
-        user_role="Engineer",
-        confidence=incident.ai_analysis.confidence if incident.ai_analysis else 85.0
+    stored = (
+        db.query(IncidentRecord)
+        .filter(
+            IncidentRecord.id != inc.id,
+            IncidentRecord.status.in_(["resolved", "closed"]),
+        )
+        .all()
     )
 
-    remediation.execution_status = exec_res["execution_status"]
-    remediation.execution_output = exec_res["output"]
-    remediation.executed_at = datetime.datetime.utcnow()
+    stored_pool = []
+    for r in stored:
+        sol = r.solutions[0].solution_text if r.solutions else None
+        if sol:
+            stored_pool.append({
+                "id": r.id,
+                "title": r.title,
+                "object": r.object_tag,
+                "type": r.type_tag,
+                "service": r.service_tag,
+                "problem": r.problem_tag,
+                "solution": sol,
+            })
 
-    if exec_res["verified"]:
-        incident.status = "RESOLVED"
-        incident.resolved_at = datetime.datetime.utcnow()
-        # Learning feedback loop
-        learning_agent.promote_incident_to_knowledge(db, incident)
-
-    db.add(AuditLog(
-        incident_id=id,
-        action="REMEDIATION_EXECUTED",
-        details=f"Executed tool '{tool_name}'. Outcome: {exec_res['status']}."
-    ))
-    db.commit()
-    db.refresh(incident)
+    matchmaker = get_matchmaker()
+    query_tags = {
+        "object": inc.object_tag,
+        "type": inc.type_tag,
+        "service": inc.service_tag,
+        "problem": inc.problem_tag,
+    }
+    exact, possible = matchmaker.find_matches(query_tags, stored_pool)
 
     return {
-        "status": exec_res["status"],
-        "incident_status": incident.status,
-        "output": exec_res["output"]
+        "incident_id": inc.id,
+        "threshold": matchmaker.threshold,
+        "factors": matchmaker.factors,
+        "exact_matches": exact,
+        "possible_matches": possible,
     }
 
-@router.post("/{id}/resolve")
-def resolve_incident(id: str, db: Session = Depends(get_db)):
-    """SOLVE: Manually mark incident as resolved and update RAG feedback loop."""
-    incident = db.query(Incident).filter(Incident.id == id).first()
-    if not incident:
-        raise HTTPException(status_code=404, detail="Incident not found")
 
-    incident.status = "RESOLVED"
-    incident.resolved_at = datetime.datetime.utcnow()
-    
-    learning_agent.promote_incident_to_knowledge(db, incident)
-    
-    db.commit()
-    return {"status": "success", "incident_id": id, "new_status": "RESOLVED"}
+@router.get("/{incident_id}/audit", response_model=List[AuditLogOut])
+def get_incident_audit_trail(incident_id: str, db: Session = Depends(get_db)):
+    """Get complete ITIL lifecycle audit trail for an incident."""
+    entries = (
+        db.query(AuditLog)
+        .filter(AuditLog.incident_id == incident_id)
+        .order_by(AuditLog.timestamp.asc())
+        .all()
+    )
+    return entries

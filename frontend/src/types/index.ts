@@ -1,87 +1,173 @@
-export interface AIAnalysis {
-  summary: string;
-  classification: string;
-  impact: string;
-  urgency: string;
-  root_cause: string;
-  confidence: number;
-  recommendation: string;
+/**
+ * TypeScript types for ITIL Multi-Agent Incident Management System (MA-IMS)
+ */
+
+export interface Solution {
+  id: number;
+  solution_text: string;
+  resolution_method: 'auto_reuse' | 'staff_resolved';
+  created_at?: string;
 }
 
-export interface IncidentEvidence {
+export interface AuditEntry {
   id: number;
-  source_type: 'LOG' | 'METRIC' | 'CMDB' | 'RAG_DOCUMENT' | 'HISTORICAL_INCIDENT';
-  source_reference: string;
-  content: string;
-  relevance_score: number;
+  agent_name: string;
+  action: string;
+  details?: string;
+  timestamp: string;
 }
 
-export interface RemediationAction {
-  id: number;
-  action_name: string;
-  action_description?: string;
-  risk_level: 'Low' | 'Medium' | 'High' | 'Critical';
-  approval_status: 'PENDING' | 'PENDING_APPROVAL' | 'AUTO_APPROVED' | 'APPROVED' | 'REJECTED' | 'EXECUTED' | 'VERIFIED' | 'NOT_ELIGIBLE';
-  execution_status: 'NOT_STARTED' | 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
-  execution_output?: string;
-  executed_at?: string;
+export interface MatchDetails {
+  service: [string, number];
+  object: [string, number];
+  problem: [string, number];
+  type: [string, number];
+}
+
+export interface StoredMatch {
+  id: string;
+  title: string;
+  object: string;
+  type: string;
+  service: string;
+  problem: string;
+  solution: string;
+  score: number;
+  match_details: MatchDetails;
 }
 
 export interface Incident {
   id: string;
   title: string;
   description: string;
-  category?: string;
-  severity?: 'Low' | 'Medium' | 'High' | 'Critical';
+  object_tag: string;
+  type_tag: string;
+  service_tag: string;
+  problem_tag: string;
+  status: 'open' | 'assigned' | 'in_progress' | 'resolved' | 'closed';
+  severity?: string;
   priority?: 'P1' | 'P2' | 'P3' | 'P4';
-  status: 'NEW' | 'TRIAGED' | 'INVESTIGATING' | 'DIAGNOSED' | 'REMEDIATION_RECOMMENDED' | 'AUTO_HEALING' | 'ASSIGNED' | 'VERIFYING' | 'RESOLVED' | 'CLOSED';
-  source: string;
-  service: string;
-  environment: string;
-  assigned_team?: string;
-  created_at: string;
-  updated_at: string;
+  impact?: string;
+  urgency?: string;
+  sla_allowed_time_minutes?: number;
+  sla_breached?: boolean;
+  assigned_support_category?: string;
+  assigned_agent_id?: string;
+  source: 'user_gui' | 'event_log';
+  productivity_rate?: number;
+  problem_manager_notified?: boolean;
+  xml_representation?: string;
+  created_at?: string;
   resolved_at?: string;
-  ai_analysis?: AIAnalysis;
-  evidences?: IncidentEvidence[];
-  remediations?: RemediationAction[];
+  closed_at?: string;
+  solutions?: Solution[];
+  audit_entries?: AuditEntry[];
 }
 
-export interface KnowledgeDocument {
+export interface MatchResults {
+  incident_id: string;
+  threshold: number;
+  factors: { S: number; O: number; P: number; T: number };
+  exact_matches: StoredMatch[];
+  possible_matches: StoredMatch[];
+}
+
+export interface IncidentSubmissionResponse {
+  incident_id: string;
+  status: string;
+  match_type: 'exact' | 'possible' | 'none';
+  message: string;
+  solution?: string;
+  matched_incident_id?: string;
+  score?: number;
+  exact_matches?: StoredMatch[];
+  possible_matches?: StoredMatch[];
+}
+
+export interface EventLog {
   id: number;
-  title: string;
-  content: string;
-  document_type: string;
-  source: string;
-  version: string;
-  created_at: string;
+  timestamp: string;
+  source_system: string;
+  service_name: string;
+  log_level: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
+  message: string;
+  processed_by_supervisor: boolean;
+  incident_id?: string;
 }
 
-export interface EvaluationMetrics {
-  dataset_summary: {
-    total_benchmark_incidents: number;
-    resolved_incidents: number;
-    test_coverage: string;
-  };
-  performance_comparison: {
-    mttr_minutes: {
-      manual_baseline: number;
-      ai_agent_proposed: number;
-      improvement_pct: number;
-    };
-    classification_accuracy_pct: number;
-    priority_prediction_accuracy_pct: number;
-    rca_root_cause_accuracy_pct: number;
-    recommendation_accuracy_pct: number;
-    auto_healing_success_rate_pct: number;
-    human_intervention_rate_pct: {
-      manual_baseline: number;
-      ai_agent_proposed: number;
-      reduction_pct: number;
-    };
-  };
-  confusion_matrix_sample: {
-    categories: string[];
-    matrix: number[][];
-  };
+export interface AgentStatus {
+  name: string;
+  description: string;
+  is_connected: boolean;
+  message_count: number;
+}
+
+export interface SupervisorStatus {
+  name: string;
+  is_connected: boolean;
+  is_monitoring: boolean;
+  is_background_loop_running: boolean;
+  last_poll_at?: string;
+  detected_count: number;
+  suppressed_count: number;
+  poll_interval_seconds: number;
+}
+
+export interface ConfigurationItem {
+  id: number;
+  ci_name: string;
+  ci_type: string;
+  service_name: string;
+  impact_level: number;
+  urgency_level: number;
+  owner_team?: string;
+  dependencies_json?: string;
+  status: string;
+  created_at?: string;
+}
+
+export interface SLADefinition {
+  id: number;
+  service_name: string;
+  priority: string;
+  max_resolution_time_minutes: number;
+  recurrence_threshold: number;
+  escalation_rules_json?: string;
+  created_at?: string;
+}
+
+export interface DashboardMetrics {
+  total_incidents: number;
+  resolved_count: number;
+  open_count: number;
+  mttr_minutes_auto: number;
+  mttr_minutes_staff: number;
+  solution_reuse_rate: number;
+  auto_detection_rate: number;
+  sla_compliance_rate: number;
+  categories: Record<string, number>;
+  statuses: Record<string, number>;
+}
+
+export interface SLACompliance {
+  overall_compliance_rate: number;
+  breached_count: number;
+  at_risk_count: number;
+  at_risk_incidents: Array<{
+    id: string;
+    title: string;
+    priority: string;
+    allowed_minutes: number;
+    remaining_minutes: number;
+  }>;
+  priority_breakdown: Record<string, { total: number; breached: number; compliance_rate: number }>;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'end_user' | 'support_staff' | 'problem_manager' | 'system_admin' | 'it_service_manager';
+  department?: string;
+  support_category?: string;
 }

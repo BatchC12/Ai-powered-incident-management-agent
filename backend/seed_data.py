@@ -1,251 +1,357 @@
-import os
+"""
+MA-IMS Seed Data Script.
+Seeds the database with:
+- 5 ITIL user personas and support teams
+- 10+ CMDB Configuration Items (CIs)
+- Complete SLA Catalog definitions
+- 8 Historical resolved incidents with solutions and XML records (for semantic matchmaking warmup)
+- Initial Event Log entries for Supervisor Agent detection demo
+"""
 import sys
-import json
+import os
+import datetime
 
 # Ensure backend root is in sys.path
-backend_dir = os.path.abspath(os.path.dirname(__file__))
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
-
-root_dir = os.path.abspath(os.path.join(backend_dir, ".."))
-if root_dir not in sys.path:
-    sys.path.insert(0, root_dir)
+sys.path.insert(0, os.path.dirname(__file__))
 
 from app.core.database import SessionLocal, engine, Base
-from app.models.database import User, Incident, AIAnalysis, IncidentEvidence, RemediationAction, KnowledgeDocument
-from app.rag.vector_store import vector_store
+from app.models.users import User, SupportTeam
+from app.models.cmdb import ConfigurationItem, SLADefinition
+from app.models.imdb import IncidentRecord, IncidentSolution
+from app.models.event_log import EventLogEntry
+from app.models.audit import AuditLog
+from app.models.xml_serializer import incident_to_xml
 from app.core.security import get_password_hash
 
+
 def seed_database():
+    print("[+] Creating database schema...")
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
-        # 1. Fake Company Users: AetherPay Global Inc. with Default Passwords
-        u_admin = db.query(User).filter(User.email == "admin@aetherpay.com").first()
-        if not u_admin:
-            u_admin = User(
-                name="Alex Mercer", 
-                email="admin@aetherpay.com", 
-                hashed_password=get_password_hash("admin123"),
-                role="Incident Manager", 
-                department="Platform Ops"
-            )
-            db.add(u_admin)
-        else:
-            u_admin.hashed_password = get_password_hash("admin123")
+        # Check if already seeded
+        if db.query(User).count() > 0:
+            print("Database already contains data. Skipping full seed.")
+            return
 
-        u_engineer = db.query(User).filter(User.email == "sre@aetherpay.com").first()
-        if not u_engineer:
-            u_engineer = User(
-                name="Elena Rostova", 
-                email="sre@aetherpay.com", 
-                hashed_password=get_password_hash("sre123"),
-                role="Lead SRE", 
-                department="Site Reliability"
+        print("[+] Seeding ITIL Users...")
+        users = [
+            User(
+                name="System Administrator",
+                email="admin@itil.org",
+                hashed_password=get_password_hash("password"),
+                role="system_admin",
+                department="IT Infrastructure",
+            ),
+            User(
+                name="Alex Vance (End User)",
+                email="alex.user@enterprise.org",
+                hashed_password=get_password_hash("password"),
+                role="end_user",
+                department="Finance Operations",
+            ),
+            User(
+                name="Sarah Connor (Software Support)",
+                email="sarah.soft@enterprise.org",
+                hashed_password=get_password_hash("password"),
+                role="support_staff",
+                department="Application Engineering",
+                support_category="software",
+            ),
+            User(
+                name="Gordon Freeman (Network Support)",
+                email="gordon.net@enterprise.org",
+                hashed_password=get_password_hash("password"),
+                role="support_staff",
+                department="Network Operations",
+                support_category="network",
+            ),
+            User(
+                name="Ellen Ripley (Problem Manager)",
+                email="ellen.problem@enterprise.org",
+                hashed_password=get_password_hash("password"),
+                role="problem_manager",
+                department="IT Quality & Continuity",
+            ),
+            User(
+                name="Marcus Brody (IT Service Manager)",
+                email="marcus.manager@enterprise.org",
+                hashed_password=get_password_hash("password"),
+                role="it_service_manager",
+                department="IT Executive Office",
+            ),
+        ]
+        db.add_all(users)
+        db.commit()
+
+        print("[+] Seeding Support Teams...")
+        categories = [
+            ("hardware", "Hardware Support Team", "L1/L2 server, printer, and device technicians"),
+            ("software", "Software & App Support", "Enterprise application and web service support"),
+            ("network", "Network Operations Team", "LAN, WAN, VPN, and routing specialists"),
+            ("database", "Database Administration", "PostgreSQL, MySQL, and Redis specialists"),
+            ("security", "Cybersecurity & IAM", "Access control, SSL certificates, and threat management"),
+            ("cloud", "Cloud Infrastructure Team", "AWS, GCP, and Kubernetes cloud platform engineering"),
+        ]
+        teams = [SupportTeam(category=c, team_name=n, description=d) for c, n, d in categories]
+        db.add_all(teams)
+        db.commit()
+
+        print("[+] Seeding CMDB Configuration Items...")
+        cis = [
+            ConfigurationItem(
+                ci_name="prod-web-01",
+                ci_type="server",
+                service_name="Payment Gateway",
+                impact_level=1,
+                urgency_level=2,
+                owner_team="software",
+                dependencies_json='["prod-db-cluster", "edge-router-01"]',
+            ),
+            ConfigurationItem(
+                ci_name="prod-db-cluster",
+                ci_type="database",
+                service_name="Core Banking",
+                impact_level=1,
+                urgency_level=1,
+                owner_team="database",
+                dependencies_json='["storage-san-01"]',
+            ),
+            ConfigurationItem(
+                ci_name="edge-router-01",
+                ci_type="network_device",
+                service_name="Internet Gateway",
+                impact_level=1,
+                urgency_level=1,
+                owner_team="network",
+                dependencies_json='[]',
+            ),
+            ConfigurationItem(
+                ci_name="auth-oauth2-svc",
+                ci_type="application",
+                service_name="Single Sign-On",
+                impact_level=1,
+                urgency_level=2,
+                owner_team="security",
+                dependencies_json='["prod-db-cluster"]',
+            ),
+            ConfigurationItem(
+                ci_name="printer-hq-fl2",
+                ci_type="hardware",
+                service_name="Printing Service",
+                impact_level=4,
+                urgency_level=4,
+                owner_team="hardware",
+                dependencies_json='[]',
+            ),
+            ConfigurationItem(
+                ci_name="corp-mail-exchange",
+                ci_type="server",
+                service_name="Corporate Mailing",
+                impact_level=2,
+                urgency_level=2,
+                owner_team="software",
+                dependencies_json='["edge-router-01"]',
+            ),
+            ConfigurationItem(
+                ci_name="vpn-gateway-hq",
+                ci_type="network_device",
+                service_name="Remote Access VPN",
+                impact_level=2,
+                urgency_level=2,
+                owner_team="network",
+                dependencies_json='["edge-router-01"]',
+            ),
+        ]
+        db.add_all(cis)
+        db.commit()
+
+        print("[+] Seeding SLA Catalog...")
+        sla_entries = [
+            SLADefinition(service_name="Payment Gateway", priority="P1", max_resolution_time_minutes=60, recurrence_threshold=2),
+            SLADefinition(service_name="Payment Gateway", priority="P2", max_resolution_time_minutes=180, recurrence_threshold=3),
+            SLADefinition(service_name="Core Banking", priority="P1", max_resolution_time_minutes=45, recurrence_threshold=2),
+            SLADefinition(service_name="Single Sign-On", priority="P1", max_resolution_time_minutes=60, recurrence_threshold=3),
+            SLADefinition(service_name="Single Sign-On", priority="P2", max_resolution_time_minutes=240, recurrence_threshold=3),
+            SLADefinition(service_name="Internet Gateway", priority="P1", max_resolution_time_minutes=60, recurrence_threshold=2),
+            SLADefinition(service_name="Corporate Mailing", priority="P2", max_resolution_time_minutes=240, recurrence_threshold=4),
+            SLADefinition(service_name="Printing Service", priority="P4", max_resolution_time_minutes=1440, recurrence_threshold=5),
+        ]
+        db.add_all(sla_entries)
+        db.commit()
+
+        print("[+] Seeding Historical Resolved Incidents into IMDB...")
+        now = datetime.datetime.utcnow()
+        historical_cases = [
+            {
+                "id": "INC-1001",
+                "title": "Corporate Mailing: timeout on web browser",
+                "desc": "Users experiencing connection timeout when opening corporate webmail via web browser.",
+                "obj": "web browser",
+                "type": "application",
+                "svc": "mailing",
+                "prob": "timeout",
+                "sol": "Flush client DNS cache (ipconfig /flushdns) and clear web browser SSL state.",
+                "cat": "software",
+                "pri": "P2",
+                "sev": "2-High",
+            },
+            {
+                "id": "INC-1002",
+                "title": "Printing Service: fault on printer",
+                "desc": "Floor 2 network printer reports paper jam fault and drops print queue jobs.",
+                "obj": "printer",
+                "type": "hardware",
+                "svc": "printing",
+                "prob": "fault",
+                "sol": "Clear tray 2 pickup rollers with isopropyl alcohol and power-cycle printer to reset queue.",
+                "cat": "hardware",
+                "pri": "P4",
+                "sev": "4-Low",
+            },
+            {
+                "id": "INC-1003",
+                "title": "Internet Gateway: shutdown on router",
+                "desc": "Edge router BGP session shut down unexpectedly following link flapping.",
+                "obj": "router",
+                "type": "network",
+                "svc": "connection",
+                "prob": "shutdown",
+                "sol": "Reset primary BGP neighbor interface and restore MTU clamping to 1420 bytes.",
+                "cat": "network",
+                "pri": "P1",
+                "sev": "1-Critical",
+            },
+            {
+                "id": "INC-1004",
+                "title": "Core Banking: error on database",
+                "desc": "Database transaction log disk full causing SQL connection errors.",
+                "obj": "database",
+                "type": "application",
+                "svc": "connection",
+                "prob": "error",
+                "sol": "Purge stale WAL archive segments and expand storage volume by 50GB.",
+                "cat": "database",
+                "pri": "P1",
+                "sev": "1-Critical",
+            },
+            {
+                "id": "INC-1005",
+                "title": "Single Sign-On: timeout on server",
+                "desc": "OAuth token issuance requests timing out due to LDAP server latency.",
+                "obj": "server",
+                "type": "application",
+                "svc": "authentication",
+                "prob": "timeout",
+                "sol": "Increase LDAP connection pool size and enable persistent connection keep-alives.",
+                "cat": "security",
+                "pri": "P2",
+                "sev": "2-High",
+            },
+        ]
+
+        for case in historical_cases:
+            xml_data = incident_to_xml(
+                incident_id=case["id"],
+                object_tag=case["obj"],
+                type_tag=case["type"],
+                service_tag=case["svc"],
+                problem_tag=case["prob"],
+                description=case["desc"],
+                solution=case["sol"],
+                status="resolved",
+                severity=case["sev"],
+                priority=case["pri"],
             )
-            db.add(u_engineer)
-        else:
-            u_engineer.hashed_password = get_password_hash("sre123")
+
+            created_time = now - datetime.timedelta(days=2, hours=3)
+            resolved_time = created_time + datetime.timedelta(minutes=35)
+
+            inc = IncidentRecord(
+                id=case["id"],
+                title=case["title"],
+                description=case["desc"],
+                object_tag=case["obj"],
+                type_tag=case["type"],
+                service_tag=case["svc"],
+                problem_tag=case["prob"],
+                status="resolved",
+                severity=case["sev"],
+                priority=case["pri"],
+                impact="High" if "1" in case["pri"] or "2" in case["pri"] else "Low",
+                urgency="High" if "1" in case["pri"] else "Medium",
+                sla_allowed_time_minutes=240,
+                sla_breached=False,
+                assigned_support_category=case["cat"],
+                source="user_gui",
+                productivity_rate=0.05,
+                xml_representation=xml_data,
+                created_at=created_time,
+                resolved_at=resolved_time,
+            )
+            db.add(inc)
+            db.flush()
+
+            sol = IncidentSolution(
+                incident_id=inc.id,
+                solution_text=case["sol"],
+                resolution_method="staff_resolved",
+                created_at=resolved_time,
+            )
+            db.add(sol)
+
+            db.add(
+                AuditLog(
+                    incident_id=inc.id,
+                    agent_name="SupportAgent",
+                    action="INCIDENT_RESOLVED",
+                    details=f"Historical seed resolution applied: {case['sol']}",
+                    timestamp=resolved_time,
+                )
+            )
 
         db.commit()
 
-        # 2. Knowledge Documents & SOPs for AetherPay Global Inc.
-        sop_docs = [
-            {
-                "title": "AetherPay SOP: Payment Gateway HTTP 500 Connection Exhaustion",
-                "content": "SOP-PAY-500: High connection pool utilization on payment-api postgresql cluster causes HTTP 500 internal server errors. Symptom: HTTP 500 spikes, DB connections > 90%, latency > 1500ms. Action: Execute clear_cache to flush idle connection handles and scale container pool. Verification: Check /healthz ping returns 200 OK.",
-                "type": "SOP",
-                "source": "AetherPay Confluence"
-            },
-            {
-                "title": "AetherPay SOP: User Auth Service Memory Leak & OOM Killer Spike",
-                "content": "SOP-AUTH-401: Memory leakage in JWT token verification threadpool causes container OOM kills and auth latency spikes. Action: Execute scale_container to expand replica count to 5 pods and restart service daemon. Verification: Verify SLA latency < 45ms.",
-                "type": "SOP",
-                "source": "AetherPay Confluence"
-            },
-            {
-                "title": "AetherPay SOP: Redis Cache Cluster Hit-Ratio Degradation",
-                "content": "SOP-CACHE-301: Redis cluster cache evictions lead to database read overload on user profile service. Action: Execute clear_cache tool to purge stale memory keys and scale Redis replica memory.",
-                "type": "SOP",
-                "source": "AetherPay Runbook"
-            }
+        print("[+] Seeding Event Log Entries for Supervisor Agent...")
+        sample_logs = [
+            EventLogEntry(
+                source_system="prod-web-01",
+                service_name="Payment Gateway",
+                log_level="CRITICAL",
+                message="HTTP 504 Gateway Timeout detected on /v1/checkout endpoint after 30000ms",
+                processed_by_supervisor=False,
+            ),
+            EventLogEntry(
+                source_system="printer-hq-fl2",
+                service_name="Printing Service",
+                log_level="ERROR",
+                message="Print spooler queue failure: Tray 2 sensor reported mechanical roller fault",
+                processed_by_supervisor=False,
+            ),
+            EventLogEntry(
+                source_system="vpn-gateway-hq",
+                service_name="Remote Access VPN",
+                log_level="WARN",
+                message="Tunnel handshake retransmissions exceeded 5% threshold on interface tun0",
+                processed_by_supervisor=False,
+            ),
+            EventLogEntry(
+                source_system="corp-mail-exchange",
+                service_name="Corporate Mailing",
+                log_level="INFO",
+                message="Health check passed: inbound SMTP queue length 2",
+                processed_by_supervisor=True,
+            ),
         ]
+        db.add_all(sample_logs)
+        db.commit()
 
-        for s in sop_docs:
-            existing = db.query(KnowledgeDocument).filter(KnowledgeDocument.title == s["title"]).first()
-            if not existing:
-                emb = vector_store.generate_embedding(s["content"])
-                doc = KnowledgeDocument(
-                    title=s["title"], 
-                    content=s["content"], 
-                    document_type=s["type"], 
-                    source=s["source"],
-                    embedding_json=json.dumps(emb)
-                )
-                db.add(doc)
-                db.commit()
-
-        # 3. Seed AetherPay Production Incidents
-        inc_data = [
-            {
-                "id": "INC-1024",
-                "title": "AetherPay Production API Failure — HTTP 500 Spikes",
-                "description": "Payment Gateway API is failing for checkout transactions in production. Error log: 'sqlalchemy.exc.TimeoutError: QueuePool limit of size 20 overflow 10 reached'. Latency spiked to 2.4s, 500 error rate at 28%.",
-                "service": "Payment Gateway API",
-                "environment": "Production (US-East-1)",
-                "source": "Datadog Alert",
-                "priority": "P1",
-                "severity": "CRITICAL",
-                "category": "Database",
-                "status": "REMEDIATION_RECOMMENDED",
-                "assigned_team": "Payments Platform Team",
-                "rca": "Database connection pool exhaustion on PostgreSQL primary node (db-payment-prod-01) due to unclosed transaction handles during peak checkout burst.",
-                "confidence": 92.0,
-                "action_name": "Clear Idle DB Connections & Expand Pool",
-                "tool_name": "clear_cache"
-            },
-            {
-                "id": "INC-1023",
-                "title": "User Database Cluster High Memory Contention",
-                "description": "PostgreSQL User Cluster buffer pool memory usage hit 94%. Slow query logs show long-running SELECT queries on user_accounts table.",
-                "service": "User DB Cluster",
-                "environment": "Production",
-                "source": "Prometheus Alertmanager",
-                "priority": "P2",
-                "severity": "HIGH",
-                "category": "Database",
-                "status": "INVESTIGATING",
-                "assigned_team": "Data Infrastructure",
-                "rca": "Buffer pool cache churn caused by unindexed batch query executed by reporting worker.",
-                "confidence": 87.0,
-                "action_name": "Flush Buffer Cache & Scale Replicas",
-                "tool_name": "clear_cache"
-            },
-            {
-                "id": "INC-1022",
-                "title": "AetherPay Auth Service Latency Degraded",
-                "description": "OAuth token verification endpoint /v1/auth/verify taking > 850ms per request. Customer login failure rate at 4.2%.",
-                "service": "Auth Token Authority",
-                "environment": "Production",
-                "source": "NewRelic Monitor",
-                "priority": "P3",
-                "severity": "MEDIUM",
-                "category": "Application",
-                "status": "NEW",
-                "assigned_team": "Identity & Security",
-                "rca": "Cryptographic token verification thread pool saturation under high concurrent login traffic.",
-                "confidence": 78.0,
-                "action_name": "Scale Container Replicas",
-                "tool_name": "scale_container"
-            },
-            {
-                "id": "INC-1021",
-                "title": "Redis Session Cache Hit Ratio Dropped below 65%",
-                "description": "Session lookup cache misses causing fallback reads to primary user database.",
-                "service": "Redis Cluster",
-                "environment": "Production",
-                "source": "Grafana Sentinel",
-                "priority": "P4",
-                "severity": "LOW",
-                "category": "Infrastructure",
-                "status": "NEW",
-                "assigned_team": "Platform SRE",
-                "rca": "Memory key eviction triggered by unexpired transient session objects.",
-                "confidence": 64.0,
-                "action_name": "Flush Stale Session Keys",
-                "tool_name": "clear_cache"
-            },
-            {
-                "id": "INC-1020",
-                "title": "Notification Worker Queue Backup",
-                "description": "SMS and Email notification dispatch latency increased to 12 minutes.",
-                "service": "Notification Worker",
-                "environment": "Production",
-                "source": "AWS CloudWatch",
-                "priority": "P2",
-                "severity": "HIGH",
-                "category": "Application",
-                "status": "RESOLVED",
-                "assigned_team": "Messaging Services",
-                "rca": "Third-party SMS gateway throttling rate limit exceeded.",
-                "confidence": 93.0,
-                "action_name": "Restart Worker Service Daemon",
-                "tool_name": "restart_service"
-            }
-        ]
-
-        for item in inc_data:
-            existing = db.query(Incident).filter(Incident.id == item["id"]).first()
-            if not existing:
-                inc = Incident(
-                    id=item["id"],
-                    title=item["title"],
-                    description=item["description"],
-                    service=item["service"],
-                    environment=item["environment"],
-                    source=item["source"],
-                    priority=item["priority"],
-                    severity=item["severity"],
-                    category=item["category"],
-                    status=item["status"],
-                    assigned_team=item["assigned_team"],
-                    reporter_id=u_engineer.id
-                )
-                db.add(inc)
-                db.commit()
-                db.refresh(inc)
-
-                # AI Analysis
-                ana = AIAnalysis(
-                    incident_id=inc.id,
-                    summary=f"AI Agent triage analysis for {inc.title}",
-                    classification=item["category"],
-                    impact=item["severity"],
-                    urgency=item["severity"],
-                    root_cause=item["rca"],
-                    confidence=item["confidence"],
-                    recommendation=item["action_name"]
-                )
-                db.add(ana)
-
-                # Evidence
-                ev1 = IncidentEvidence(
-                    incident_id=inc.id, 
-                    source_type="LOG", 
-                    source_reference="payment-api-app.log",
-                    content=f"ERROR 2026-08-14 11:45:00 [{item['service']}] PoolTimeout: Connection pool exhausted (size=20, overflow=10)"
-                )
-                ev2 = IncidentEvidence(
-                    incident_id=inc.id, 
-                    source_type="METRIC", 
-                    source_reference="prometheus_query_db_pool",
-                    content="Prometheus Sample: CPU=88%, Memory=92%, DB_Connections=98/100, Latency=2450ms, HTTP_500_Rate=28.4%"
-                )
-                ev3 = IncidentEvidence(
-                    incident_id=inc.id, 
-                    source_type="CMDB", 
-                    source_reference="cmdb_topology_graph",
-                    content=f"Topology Graph: {item['service']} -> db-payment-prod-01 -> Redis Cluster -> AWS Ingress Gateway"
-                )
-                db.add_all([ev1, ev2, ev3])
-
-                # Remediation Action
-                rem = RemediationAction(
-                    incident_id=inc.id,
-                    action_name=item["action_name"],
-                    action_description=f"Automated execution script for {item['tool_name']} on {item['service']}",
-                    risk_level="Low" if item["confidence"] >= 90 else "Medium",
-                    approval_status="APPROVED" if item["status"] in ["REMEDIATION_RECOMMENDED", "RESOLVED"] else "PENDING",
-                    execution_status="SUCCESS" if item["status"] == "RESOLVED" else "NOT_STARTED"
-                )
-                db.add(rem)
-                db.commit()
-
-        print("[AetherPay Seed] Database populated with seed user passwords (admin@aetherpay.com / admin123, sre@aetherpay.com / sre123)!")
+        print("[OK] Database successfully seeded with ITIL MA-IMS baseline data.")
 
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_database()

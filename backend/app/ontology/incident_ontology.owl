@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:inc="http://ma-ims.itil/ontology/incident#">
+
+  <owl:Ontology rdf:about="http://ma-ims.itil/ontology/incident">
+    <rdfs:label>MA-IMS Incident Ontology</rdfs:label>
+    <rdfs:comment>
+      OWL ontology for ITIL incident vocabulary.
+      Defines four concept hierarchies: Object, Type, Service, Problem.
+      Used by the Incident Agent's semantic matchmaking algorithm (Section 6).
+    </rdfs:comment>
+  </owl:Ontology>
+
+  <!-- ============================================================ -->
+  <!-- TOP-LEVEL CLASSES (the 4-tuple categories)                    -->
+  <!-- ============================================================ -->
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Object">
+    <rdfs:label>Object</rdfs:label>
+    <rdfs:comment>Source of the incident — the component that generated it.</rdfs:comment>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Type">
+    <rdfs:label>Type</rdfs:label>
+    <rdfs:comment>Category classification of the object.</rdfs:comment>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Service">
+    <rdfs:label>Service</rdfs:label>
+    <rdfs:comment>The IT service affected by the incident.</rdfs:comment>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Problem">
+    <rdfs:label>Problem</rdfs:label>
+    <rdfs:comment>The symptom or failure observed.</rdfs:comment>
+  </owl:Class>
+
+  <!-- ============================================================ -->
+  <!-- OBJECT HIERARCHY                                              -->
+  <!-- ============================================================ -->
+
+  <!-- Hardware Objects -->
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#HardwareObject">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Object"/>
+    <rdfs:label>HardwareObject</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Printer">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>Printer</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Server">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>Server</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Router">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>Router</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Switch">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>Switch</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Workstation">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>Workstation</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#StorageDevice">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#HardwareObject"/>
+    <rdfs:label>StorageDevice</rdfs:label>
+  </owl:Class>
+
+  <!-- Software / Application Objects -->
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#SoftwareObject">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Object"/>
+    <rdfs:label>SoftwareObject</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#WebBrowser">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>WebBrowser</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#EmailClient">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>EmailClient</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Spreadsheet">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>Spreadsheet</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Database">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>Database</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#OperatingSystem">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>OperatingSystem</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#WebApplication">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>WebApplication</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#API">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SoftwareObject"/>
+    <rdfs:label>API</rdfs:label>
+  </owl:Class>
+
+  <!-- Network Objects -->
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#NetworkObject">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Object"/>
+    <rdfs:label>NetworkObject</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Firewall">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#NetworkObject"/>
+    <rdfs:label>Firewall</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#LoadBalancer">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#NetworkObject"/>
+    <rdfs:label>LoadBalancer</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#VPN">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#NetworkObject"/>
+    <rdfs:label>VPN</rdfs:label>
+  </owl:Class>
+
+  <!-- ============================================================ -->
+  <!-- TYPE HIERARCHY                                                -->
+  <!-- ============================================================ -->
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#HardwareType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>HardwareType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ApplicationType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>ApplicationType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#NetworkType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>NetworkType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#SecurityType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>SecurityType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#DatabaseType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ApplicationType"/>
+    <rdfs:label>DatabaseType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#CloudType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>CloudType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#InfrastructureType">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Type"/>
+    <rdfs:label>InfrastructureType</rdfs:label>
+  </owl:Class>
+
+  <!-- ============================================================ -->
+  <!-- SERVICE HIERARCHY                                             -->
+  <!-- ============================================================ -->
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#CommunicationService">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Service"/>
+    <rdfs:label>CommunicationService</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Mailing">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#CommunicationService"/>
+    <rdfs:label>Mailing</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Messaging">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#CommunicationService"/>
+    <rdfs:label>Messaging</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ConnectivityService">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Service"/>
+    <rdfs:label>ConnectivityService</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Connection">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ConnectivityService"/>
+    <rdfs:label>Connection</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Authentication">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ConnectivityService"/>
+    <rdfs:label>Authentication</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#OutputService">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Service"/>
+    <rdfs:label>OutputService</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Printing">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#OutputService"/>
+    <rdfs:label>Printing</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Rendering">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#OutputService"/>
+    <rdfs:label>Rendering</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#DataService">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Service"/>
+    <rdfs:label>DataService</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Storage">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#DataService"/>
+    <rdfs:label>Storage</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Backup">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#DataService"/>
+    <rdfs:label>Backup</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Reporting">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#DataService"/>
+    <rdfs:label>Reporting</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ComputeService">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Service"/>
+    <rdfs:label>ComputeService</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Hosting">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ComputeService"/>
+    <rdfs:label>Hosting</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Processing">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ComputeService"/>
+    <rdfs:label>Processing</rdfs:label>
+  </owl:Class>
+
+  <!-- ============================================================ -->
+  <!-- PROBLEM HIERARCHY                                             -->
+  <!-- ============================================================ -->
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#AvailabilityProblem">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Problem"/>
+    <rdfs:label>AvailabilityProblem</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Shutdown">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#AvailabilityProblem"/>
+    <rdfs:label>Shutdown</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Crash">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#AvailabilityProblem"/>
+    <rdfs:label>Crash</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Outage">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#AvailabilityProblem"/>
+    <rdfs:label>Outage</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Hang">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#AvailabilityProblem"/>
+    <rdfs:label>Hang</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#PerformanceProblem">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Problem"/>
+    <rdfs:label>PerformanceProblem</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Slowness">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#PerformanceProblem"/>
+    <rdfs:label>Slowness</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Timeout">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#PerformanceProblem"/>
+    <rdfs:label>Timeout</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#HighLatency">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#PerformanceProblem"/>
+    <rdfs:label>HighLatency</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ResourceExhaustion">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#PerformanceProblem"/>
+    <rdfs:label>ResourceExhaustion</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ErrorProblem">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Problem"/>
+    <rdfs:label>ErrorProblem</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Error">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ErrorProblem"/>
+    <rdfs:label>Error</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Fault">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ErrorProblem"/>
+    <rdfs:label>Fault</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#DataCorruption">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ErrorProblem"/>
+    <rdfs:label>DataCorruption</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#ConfigurationError">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#ErrorProblem"/>
+    <rdfs:label>ConfigurationError</rdfs:label>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#SecurityProblem">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#Problem"/>
+    <rdfs:label>SecurityProblem</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#UnauthorizedAccess">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SecurityProblem"/>
+    <rdfs:label>UnauthorizedAccess</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://ma-ims.itil/ontology/incident#Breach">
+    <rdfs:subClassOf rdf:resource="http://ma-ims.itil/ontology/incident#SecurityProblem"/>
+    <rdfs:label>Breach</rdfs:label>
+  </owl:Class>
+
+</rdf:RDF>

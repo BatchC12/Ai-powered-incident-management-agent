@@ -1,7 +1,11 @@
 import React from 'react';
-import { 
-  LayoutDashboard, ShieldAlert, Bot, Database, 
-  Wrench, BarChart3
+import {
+  LayoutDashboard,
+  ShieldAlert,
+  Activity,
+  Sliders,
+  Network,
+  Clock,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -10,28 +14,36 @@ interface SidebarProps {
   incidentCount?: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, incidentCount = 5 }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, incidentCount = 0 }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Command Dashboard', icon: LayoutDashboard },
-    { id: 'incidents', label: 'Incidents Queue', icon: ShieldAlert, badge: incidentCount },
-    { id: 'copilot', label: 'AI Copilot Assistant', icon: Bot },
-    { id: 'knowledge', label: 'RAG Knowledge Base', icon: Database },
-    { id: 'sandbox', label: 'MCP Tool Sandbox', icon: Wrench },
-    { id: 'evaluation', label: 'Evaluation Suite', icon: BarChart3 },
+    { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard },
+    { id: 'incidents', label: 'Incidents (IMDB)', icon: ShieldAlert, badge: incidentCount },
+    { id: 'supervisor', label: 'Supervisor Monitor', icon: Activity },
+    { id: 'admin', label: 'Agent Administration', icon: Sliders },
+    { id: 'ontology', label: 'OWL Incident Ontology', icon: Network },
+    { id: 'sla', label: 'SLA Governance', icon: Clock },
+  ];
+
+  const agentList = [
+    { name: 'User Agent', role: 'GUI Interface', active: true },
+    { name: 'Admin Agent', role: 'Lifecycle & Weights', active: true },
+    { name: 'Supervisor Agent', role: 'Log Auto-Detect', active: true },
+    { name: 'Incident Agent', role: 'IMDB & Matchmaker', active: true },
+    { name: 'Diagnostic Agent', role: 'CMDB & SLA Routing', active: true },
+    { name: 'Support Agents', role: 'Category Resolution', active: true },
   ];
 
   return (
-    <aside className="w-64 glass-panel border-r border-slate-800/80 p-4 flex flex-col justify-between hidden lg:flex sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
-      
-      {/* Active Functional Navigation List */}
+    <aside className="w-64 glass-panel border-r border-slate-800/80 p-4 flex flex-col justify-between hidden lg:flex sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto bg-[#090d16]">
+      {/* Navigation List */}
       <div className="space-y-1">
         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">
-          Navigation Control
+          ITIL Architecture
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id || (item.id === 'incidents' && activeTab === 'incident-detail');
-          
+          const isActive = activeTab === item.id;
+
           return (
             <button
               key={item.id}
@@ -47,10 +59,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, incid
                 <span>{item.label}</span>
               </div>
 
-              {item.badge !== undefined && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  isActive ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
-                }`}>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    isActive ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
+                  }`}
+                >
                   {item.badge}
                 </span>
               )}
@@ -59,78 +73,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, incid
         })}
       </div>
 
-      {/* AI SYSTEM HEALTH Card (Sidebar Bottom) */}
-      <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 mt-6">
-        <div className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">AI SYSTEM HEALTH</div>
-        
-        <div className="flex items-center justify-center py-1">
-          <div className="relative w-20 h-20 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx="40" cy="40" r="32" stroke="rgba(255,255,255,0.06)" strokeWidth="6" fill="transparent" />
-              <circle 
-                cx="40" 
-                cy="40" 
-                r="32" 
-                stroke="#10b981" 
-                strokeWidth="6" 
-                strokeDasharray={2 * Math.PI * 32}
-                strokeDashoffset={2 * Math.PI * 32 * (1 - 0.98)}
-                strokeLinecap="round"
-                fill="transparent" 
-              />
-            </svg>
-            <div className="absolute text-center">
-              <div className="text-base font-black text-emerald-400 font-mono">98%</div>
-              <div className="text-[8px] text-emerald-400/90 font-medium">Healthy</div>
-            </div>
-          </div>
+      {/* ITIL Multi-Agent Cluster Panel */}
+      <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 mt-6 bg-slate-900/40">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">ITIL AGENT CLUSTER</div>
+          <span className="flex items-center space-x-1 text-[10px] text-emerald-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>6/6 Active</span>
+          </span>
         </div>
 
-        {/* Sub-Service Status List */}
         <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-300">
-            <span className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>LLM Service</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Healthy</span>
-          </div>
-
-          <div className="flex items-center justify-between text-slate-300">
-            <span className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>RAG Service</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Healthy</span>
-          </div>
-
-          <div className="flex items-center justify-between text-slate-300">
-            <span className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Vector DB</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Healthy</span>
-          </div>
-
-          <div className="flex items-center justify-between text-slate-300">
-            <span className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Tool Sandbox</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Healthy</span>
-          </div>
-
-          <div className="flex items-center justify-between text-slate-300">
-            <span className="flex items-center space-x-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>Log Analyzer</span>
-            </span>
-            <span className="text-[10px] text-amber-400 font-mono">Warning</span>
-          </div>
+          {agentList.map((ag) => (
+            <div key={ag.name} className="flex items-center justify-between text-slate-300 py-0.5">
+              <span className="flex items-center space-x-1.5 truncate">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                <span className="truncate">{ag.name}</span>
+              </span>
+              <span className="text-[9px] text-slate-500 font-mono flex-shrink-0">{ag.role}</span>
+            </div>
+          ))}
         </div>
-
       </div>
-
     </aside>
   );
 };

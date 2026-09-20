@@ -1,86 +1,64 @@
 import { useState } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
-import { RightSidebar } from './components/RightSidebar';
 import { Dashboard } from './pages/Dashboard';
+import { IncidentList } from './pages/IncidentList';
 import { IncidentDetail } from './pages/IncidentDetail';
-import { CopilotChat } from './pages/CopilotChat';
-import { KnowledgeBaseAdmin } from './pages/KnowledgeBaseAdmin';
-import { EvaluationSuite } from './pages/EvaluationSuite';
-import { ToolSandbox } from './pages/ToolSandbox';
-import { Login } from './pages/Login';
+import { SupervisorMonitor } from './pages/SupervisorMonitor';
+import { AdminPanel } from './pages/AdminPanel';
+import { OntologyViewer } from './pages/OntologyViewer';
+import { SLADashboard } from './pages/SLADashboard';
 import { CreateIncidentModal } from './components/CreateIncidentModal';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import type { Incident } from './types';
+import { useAuth } from './context/AuthContext';
 
-function MainApp() {
-  const { user, isLoaded } = useAuth();
+export default function App() {
+  useAuth();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-[#070b14] flex items-center justify-center text-cyan-400 font-mono text-sm space-x-3">
-        <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-        <span>Authenticating Clerk OTP Session...</span>
-      </div>
-    );
-  }
-
-  // Protected View: If not authenticated with Clerk, render Clerk Sign-In / Sign-Up
-  if (!user) {
-    return <Login />;
-  }
 
   const handleSelectIncident = (id: string) => {
     setSelectedIncidentId(id);
   };
 
-  const handleBackToDashboard = () => {
+  const handleBackToQueue = () => {
     setSelectedIncidentId(null);
   };
 
-  const handleIncidentCreated = (newIncident: Incident) => {
-    setSelectedIncidentId(newIncident.id);
+  const handleIncidentCreated = (incidentId: string) => {
+    setSelectedIncidentId(incidentId);
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      
+    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
       {/* Top Header Navbar */}
       <Header
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
-          if (tab !== 'dashboard' && tab !== 'incidents') setSelectedIncidentId(null);
+          setSelectedIncidentId(null);
         }}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
       />
 
-      {/* Main 3-Column Grid Layout */}
+      {/* Main Layout */}
       <div className="flex-1 max-w-[1700px] w-full mx-auto flex items-start">
-        
-        {/* Left Sidebar */}
+        {/* Left ITIL Sidebar */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={(tab) => {
             setActiveTab(tab);
-            if (tab !== 'dashboard' && tab !== 'incidents') setSelectedIncidentId(null);
+            setSelectedIncidentId(null);
           }}
-          incidentCount={5}
         />
 
-        {/* Center Main Content Area */}
+        {/* Center Content Workspace */}
         <main className="flex-1 min-w-0 p-4 lg:p-6 overflow-y-auto">
           {selectedIncidentId ? (
-            <IncidentDetail
-              incidentId={selectedIncidentId}
-              onBack={handleBackToDashboard}
-            />
+            <IncidentDetail incidentId={selectedIncidentId} onBack={handleBackToQueue} />
           ) : (
             <>
-              {(activeTab === 'dashboard' || activeTab === 'incidents') && (
+              {activeTab === 'dashboard' && (
                 <Dashboard
                   onSelectIncident={handleSelectIncident}
                   onOpenCreateModal={() => setIsCreateModalOpen(true)}
@@ -91,65 +69,31 @@ function MainApp() {
                 />
               )}
 
-              {activeTab === 'copilot' && (
-                <CopilotChat selectedIncidentId={selectedIncidentId || undefined} />
+              {activeTab === 'incidents' && (
+                <IncidentList
+                  onSelectIncident={handleSelectIncident}
+                  onOpenCreateModal={() => setIsCreateModalOpen(true)}
+                />
               )}
 
-              {activeTab === 'knowledge' && (
-                <KnowledgeBaseAdmin />
-              )}
+              {activeTab === 'supervisor' && <SupervisorMonitor />}
 
-              {activeTab === 'sandbox' && (
-                <ToolSandbox />
-              )}
+              {activeTab === 'admin' && <AdminPanel />}
 
-              {activeTab === 'evaluation' && (
-                <EvaluationSuite />
-              )}
+              {activeTab === 'ontology' && <OntologyViewer />}
+
+              {activeTab === 'sla' && <SLADashboard />}
             </>
           )}
         </main>
-
-        {/* Right Sidebar */}
-        <RightSidebar
-          onSelectIncident={handleSelectIncident}
-          onNavigateTab={(tab) => {
-            setActiveTab(tab);
-            setSelectedIncidentId(null);
-          }}
-        />
-
       </div>
 
-      {/* Ingest Modal */}
+      {/* User Agent Reporting Modal (FR-3) */}
       <CreateIncidentModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={handleIncidentCreated}
+        onIncidentCreated={handleIncidentCreated}
       />
-
-      {/* Footer */}
-      <footer className="border-t border-slate-900/80 py-4 text-center text-xs text-slate-500 glass-panel mt-auto">
-        <div className="max-w-[1700px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>
-            AetherPay Global Inc. • AI Incident Response Command Center
-          </div>
-          <div className="font-mono text-[11px] text-slate-400">
-            Department of CSE (AI & ML) • Batch CSM-C12 • Guide: Mrs. V. Asha Jyothi
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }
-
-export function App() {
-  return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
-  );
-}
-
-export default App;

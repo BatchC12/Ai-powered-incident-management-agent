@@ -1,101 +1,88 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useUser, useAuth as useClerkAuth, useClerk } from '@clerk/clerk-react';
 import { api } from '../services/api';
-
-export interface UserProfile {
-  id: number;
-  clerk_user_id: string;
-  name: string;
-  email: string;
-  phone_number?: string;
-  role: string;
-  department: string;
-}
+import type { User } from '../types';
 
 interface AuthContextType {
-  user: UserProfile | null;
-  clerkUser: any;
-  isSignedIn: boolean;
+  user: User;
   isLoaded: boolean;
-  syncUser: () => Promise<void>;
-  logout: () => Promise<void>;
+  switchRole: (role: User['role'], category?: string) => Promise<void>;
+  logout: () => void;
 }
+
+const DEFAULT_USER: User = {
+  id: 1,
+  name: 'System Administrator',
+  email: 'admin@itil.org',
+  role: 'system_admin',
+  department: 'IT Infrastructure',
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
-  const { signOut } = useClerkAuth();
-  const { signOut: clerkSignOut } = useClerk();
-  const [dbUser, setDbUser] = useState<UserProfile | null>(null);
-
-  const syncUser = async () => {
-    if (isSignedIn && clerkUser) {
-      const email = clerkUser.primaryEmailAddress?.emailAddress || clerkUser.emailAddresses[0]?.emailAddress || '';
-      const phoneNumber = clerkUser.primaryPhoneNumber?.phoneNumber || clerkUser.phoneNumbers[0]?.phoneNumber || '';
-      const name = clerkUser.fullName || clerkUser.firstName || email.split('@')[0];
-
-      try {
-        const synced = await api.syncClerkUser({
-          clerk_user_id: clerkUser.id,
-          email: email,
-          name: name,
-          phone_number: phoneNumber,
-          role: (clerkUser.publicMetadata?.role as string) || 'Lead SRE'
-        });
-        setDbUser(synced);
-      } catch (err) {
-        console.error('Clerk user DB sync failed', err);
-      }
-    } else {
-      setDbUser(null);
-    }
-  };
+  const [user, setUser] = useState<User>(() => {
+    const saved = localStorage.getItem('ma_ims_user');
+    return saved ? JSON.parse(saved) : DEFAULT_USER;
+  });
+  const isLoaded = true;
 
   useEffect(() => {
-    if (isLoaded) {
-      syncUser();
-    }
-  }, [isLoaded, isSignedIn, clerkUser]);
+    // Initial login sync with backend
+    api.login(user.email, 'password')
+      .then((data) => {
+        if (data?.user) {
+          setUser(data.user);
+          localStorage.setItem('ma_ims_user', JSON.stringify(data.user));
+        }
+      })
+      .catch((e) => console.warn('Local auth sync info:', e));
+  }, []);
 
-  const logout = async () => {
+  const switchRole = async (role: User['role'], category?: string) => {
+    let email = 'admin@itil.org';
+    let name = 'System Administrator';
+
+    if (role === 'end_user') {
+      email = 'alex.user@enterprise.org';
+      name = 'Alex Vance (End User)';
+    } else if (role === 'support_staff') {
+      email = category === 'network' ? 'gordon.net@enterprise.org' : 'sarah.soft@enterprise.org';
+      name = category === 'network' ? 'Gordon Freeman (Network)' : 'Sarah Connor (Software)';
+    } else if (role === 'problem_manager') {
+      email = 'ellen.problem@enterprise.org';
+      name = 'Ellen Ripley (Problem Manager)';
+    } else if (role === 'it_service_manager') {
+      email = 'marcus.manager@enterprise.org';
+      name = 'Marcus Brody (Service Manager)';
+    }
+
     try {
-      await signOut();
-      await clerkSignOut();
-      setDbUser(null);
-    } catch (err) {
-      console.error('Logout error', err);
+      const res = await api.login(email, 'password');
+      if (res?.user) {
+        setUser(res.user);
+      } else {
+        setUser({ id: Date.now(), name, email, role, support_category: category });
+      }
+    } catch {
+      setUser({ id: Date.now(), name, email, role, support_category: category });
     }
   };
 
-  const activeUser: UserProfile | null = clerkUser ? {
-    id: dbUser?.id || 1,
-    clerk_user_id: clerkUser.id,
-    name: clerkUser.fullName || clerkUser.firstName || dbUser?.name || 'AetherPay User',
-    email: clerkUser.primaryEmailAddress?.emailAddress || dbUser?.email || '',
-    phone_number: clerkUser.primaryPhoneNumber?.phoneNumber || dbUser?.phone_number || '',
-    role: dbUser?.role || 'Lead SRE',
-    department: dbUser?.department || 'AetherPay Enterprise'
-  } : null;
+  const logout = () => {
+    localStorage.removeItem('ma_ims_token');
+    localStorage.removeItem('ma_ims_user');
+    switchRole('end_user');
+  };
 
   return (
-    <AuthContext.Provider value={{ 
-      user: activeUser, 
-      clerkUser, 
-      isSignedIn: !!isSignedIn, 
-      isLoaded, 
-      syncUser, 
-      logout 
-    }}>
+    <AuthContext.Provider value={{ user, isLoaded, switchRole, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 };
