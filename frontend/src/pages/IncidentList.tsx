@@ -208,7 +208,7 @@ export const IncidentList: React.FC<IncidentListProps> = ({
                           inc.status === 'resolved' || inc.status === 'closed'
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                             : inc.status === 'assigned'
-                            ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/30'
+                            ? 'bg-[#C5A880]/15 text-[#EAE2D8] border border-[#C5A880]/40'
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                         }`}
                       >
@@ -236,7 +236,7 @@ export const IncidentList: React.FC<IncidentListProps> = ({
 
                     <td className="px-4 py-3.5 text-slate-400 font-mono text-[10px]">
                       {inc.source === 'event_log' ? (
-                        <span className="text-cyan-400">Supervisor Log</span>
+                        <span className="text-[#C5A880]">Supervisor Log</span>
                       ) : (
                         'User GUI'
                       )}

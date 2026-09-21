@@ -74,7 +74,7 @@ export default function App() {
   ].includes(activeTab);
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen bg-[#12100E] text-[#EAE2D8] flex flex-col font-sans selection:bg-[#C5A880] selection:text-[#12100E]">
       {/* Top Header Navbar */}
       <Header
         activeTab={activeTab}

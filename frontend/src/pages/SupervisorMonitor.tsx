@@ -142,12 +142,12 @@ export const SupervisorMonitor: React.FC = () => {
 
         <div className="p-4 rounded-2xl bg-slate-900/30 border border-slate-800 space-y-1">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Suppressed Duplicates</span>
-          <div className="text-xl font-bold font-mono text-cyan-400">{status?.suppressed_count || 0}</div>
+          <div className="text-xl font-bold font-mono text-[#C5A880]">{status?.suppressed_count || 0}</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-slate-900/30 border border-slate-800 space-y-1">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Polling Interval</span>
-          <div className="text-xl font-bold font-mono text-indigo-400">{status?.poll_interval_seconds || 15}s</div>
+          <div className="text-xl font-bold font-mono text-[#E0B589]">{status?.poll_interval_seconds || 15}s</div>
         </div>
       </div>
 

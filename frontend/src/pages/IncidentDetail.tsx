@@ -99,7 +99,7 @@ export const IncidentDetail: React.FC<IncidentDetailProps> = ({ incidentId, onBa
                   incident.status === 'resolved' || incident.status === 'closed'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                     : incident.status === 'assigned'
-                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/30'
+                    ? 'bg-[#C5A880]/15 text-[#EAE2D8] border border-[#C5A880]/40'
                     : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 }`}
               >
@@ -135,11 +135,11 @@ export const IncidentDetail: React.FC<IncidentDetailProps> = ({ incidentId, onBa
           </div>
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
             <span className="text-[10px] text-slate-500 uppercase font-bold">Type (T)</span>
-            <div className="text-xs font-semibold text-cyan-400 font-mono">{incident.type_tag}</div>
+            <div className="text-xs font-semibold text-[#C5A880] font-mono">{incident.type_tag}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
             <span className="text-[10px] text-slate-500 uppercase font-bold">Service (S)</span>
-            <div className="text-xs font-semibold text-indigo-400 font-mono">{incident.service_tag}</div>
+            <div className="text-xs font-semibold text-[#E0B589] font-mono">{incident.service_tag}</div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
             <span className="text-[10px] text-slate-500 uppercase font-bold">Problem (P)</span>
@@ -283,7 +283,7 @@ export const IncidentDetail: React.FC<IncidentDetailProps> = ({ incidentId, onBa
 
             {/* Possible Incident Table */}
             <div className="p-5 rounded-2xl bg-slate-900/30 border border-slate-800 space-y-3">
-              <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+              <h3 className="text-xs font-bold text-[#C5A880] uppercase tracking-wider flex items-center space-x-2">
                 <Layers className="w-4 h-4" />
                 <span>Possible Incident Table (Suggestions for Support Staff)</span>
               </h3>
@@ -296,7 +296,7 @@ export const IncidentDetail: React.FC<IncidentDetailProps> = ({ incidentId, onBa
                     >
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-mono text-slate-300">{m.id}: {m.title}</span>
-                        <span className="font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">
+                        <span className="font-mono text-[#D4AF37] bg-[#C5A880]/10 border border-[#C5A880]/20 px-2 py-0.5 rounded">
                           Score: {m.score.toFixed(1)}
                         </span>
                       </div>

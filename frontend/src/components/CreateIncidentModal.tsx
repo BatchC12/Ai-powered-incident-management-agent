@@ -380,7 +380,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
                 className={`p-4 rounded-xl border ${
                   result.match_type === 'exact'
                     ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                    : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
+                    : 'bg-[#C5A880]/15 border border-[#C5A880]/40 text-[#EAE2D8]'
                 }`}
               >
                 <div className="flex items-center space-x-2 mb-2">

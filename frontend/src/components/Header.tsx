@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#070b14]/95 border-b border-slate-800 px-4 sm:px-6 py-2.5 shadow-xl shadow-black/40">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#141210]/95 border-b border-[#362F28] px-4 sm:px-6 py-2.5 shadow-xl shadow-black/40">
       <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-3">
         {/* Left: Branding & Mobile Menu Toggle */}
         <div className="flex items-center space-x-3">
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 hover:text-white focus:outline-none cursor-pointer"
+            className="lg:hidden p-2 rounded-xl bg-[#1E1B18] border border-[#3E362E] text-[#D8CEBF] hover:text-white focus:outline-none cursor-pointer"
             aria-label="Toggle navigation menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -72,21 +72,21 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
             className="flex items-center space-x-2.5 cursor-pointer"
             onClick={() => handleNavClick('dashboard')}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-cyan-500 to-indigo-500 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center shrink-0">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <ShieldAlert className="w-5 h-5 text-emerald-400" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#D4AF37] via-[#C5A880] to-[#8C6D53] p-0.5 shadow-lg shadow-[#A37B5C]/20 flex items-center justify-center shrink-0">
+              <div className="w-full h-full bg-[#141210] rounded-[10px] flex items-center justify-center">
+                <ShieldAlert className="w-5 h-5 text-[#C5A880]" />
               </div>
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-base font-extrabold tracking-tight text-white">
+                <span className="text-base font-extrabold tracking-tight text-[#F7F3EE]">
                   MA-IMS
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-bold font-mono tracking-wider rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-bold font-mono tracking-wider rounded-full bg-[#2B241D] text-[#D4AF37] border border-[#4E3E2E]">
                   ITIL v3 Multi-Agent
                 </span>
               </div>
-              <p className="text-[10px] text-slate-300 font-medium hidden sm:block">
+              <p className="text-[10px] text-[#A8A096] font-medium hidden sm:block">
                 Ontology-Driven Incident Management
               </p>
             </div>
@@ -96,21 +96,21 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
         {/* Center: Search & High-Contrast Primary CTA */}
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 max-w-md justify-end sm:justify-start">
           <div className="relative flex-1 hidden md:block">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#8C8479]" />
             <input
               type="text"
               placeholder="Search incidents, OWL concepts, CMDB..."
               aria-label="Search incidents and concepts"
-              className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#1A1714] border border-[#3A332C] rounded-xl text-[#EAE2D8] placeholder-[#7A7268] focus:outline-none focus:border-[#C5A880]"
             />
           </div>
 
           <button
             type="button"
             onClick={onOpenCreateModal}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 transition-all transform hover:scale-[1.02] cursor-pointer shrink-0"
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#C5A880] to-[#A37B5C] hover:from-[#D4B993] hover:to-[#B58A6A] text-[#141210] font-black text-xs shadow-lg shadow-[#A37B5C]/25 transition-all transform hover:scale-[1.02] cursor-pointer shrink-0 uppercase tracking-wider"
           >
-            <PlusCircle className="w-4 h-4 text-slate-950" />
+            <PlusCircle className="w-4 h-4 text-[#141210]" />
             <span>Report Incident</span>
           </button>
         </div>
@@ -118,24 +118,24 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
         {/* Right: Telemetry & Role Switcher */}
         <div className="hidden sm:flex items-center space-x-3">
           {/* Matchmaker Telemetry badge */}
-          <div className="hidden xl:flex items-center space-x-2 px-3 py-1 rounded-xl bg-slate-900 border border-slate-700 text-xs">
-            <Zap className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-[11px] text-slate-300">Matchmaker:</span>
-            <span className="text-[11px] font-mono font-bold text-cyan-300">OWL Exact/Plug-in</span>
+          <div className="hidden xl:flex items-center space-x-2 px-3 py-1 rounded-xl bg-[#1C1916] border border-[#3A332C] text-xs">
+            <Zap className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span className="text-[11px] text-[#A8A096]">Matchmaker:</span>
+            <span className="text-[11px] font-mono font-bold text-[#C5A880]">OWL Exact/Plug-in</span>
           </div>
 
           {/* Supervisor Status badge */}
-          <div className="hidden lg:flex items-center space-x-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
-            <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span className="text-[11px] text-slate-300">Supervisor:</span>
-            <span className="text-[11px] font-bold text-emerald-300">Active</span>
+          <div className="hidden lg:flex items-center space-x-2 px-3 py-1 rounded-xl bg-[#232B24] border border-[#3A4A3C] text-xs">
+            <Activity className="w-3.5 h-3.5 text-[#B5C99A] animate-pulse" />
+            <span className="text-[11px] text-[#A8A096]">Supervisor:</span>
+            <span className="text-[11px] font-bold text-[#B5C99A]">Active</span>
           </div>
 
           {/* ITIL Persona Switcher */}
-          <div className="flex items-center space-x-2 border-l border-slate-700 pl-3">
-            <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="flex items-center space-x-2 border-l border-[#3A332C] pl-3">
+            <UserCheck className="w-4 h-4 text-[#C5A880] shrink-0" />
             <div className="text-left">
-              <label htmlFor="role-select-desktop" className="block text-[9px] text-slate-300 uppercase font-semibold">
+              <label htmlFor="role-select-desktop" className="block text-[9px] text-[#A8A096] uppercase font-semibold">
                 Active Role
               </label>
               <select
@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
                   const target = roles.find((r) => `${r.id}${r.cat ? `_${r.cat}` : ''}` === val);
                   if (target) switchRole(target.id, target.cat);
                 }}
-                className="bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-slate-100 px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                className="bg-[#1A1714] border border-[#3A332C] rounded-lg text-xs font-semibold text-[#EAE2D8] px-2 py-1 focus:outline-none focus:border-[#C5A880] cursor-pointer"
               >
                 {roles.map((r, i) => (
                   <option key={i} value={`${r.id}${r.cat ? `_${r.cat}` : ''}`}>
@@ -161,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
 
       {/* Mobile Drawer Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden mt-3 pt-3 border-t border-slate-800 space-y-3 pb-2 animate-in slide-in-from-top-2 duration-200">
+        <div className="lg:hidden mt-3 pt-3 border-t border-[#362F28] space-y-3 pb-2 animate-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-2 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -173,19 +173,19 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
                   onClick={() => handleNavClick(item.id)}
                   className={`flex items-center space-x-2 p-2.5 rounded-xl text-xs font-semibold transition-all text-left ${
                     isActive
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'bg-slate-900/80 text-slate-300 hover:text-white border border-slate-800'
+                      ? 'bg-[#2B241D] text-[#D4AF37] border border-[#524436]'
+                      : 'bg-[#1C1916] text-[#D8CEBF] hover:text-white border border-[#332C25]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D4AF37]' : 'text-[#8C8479]'}`} />
                   <span>{item.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-            <span className="text-slate-300 font-medium">Switch Persona:</span>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#1C1916] border border-[#362F28] text-xs">
+            <span className="text-[#D8CEBF] font-medium">Switch Persona:</span>
             <select
               value={`${user?.role}${user?.support_category ? `_${user.support_category}` : ''}`}
               onChange={(e) => {
@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
                 const target = roles.find((r) => `${r.id}${r.cat ? `_${r.cat}` : ''}` === val);
                 if (target) switchRole(target.id, target.cat);
               }}
-              className="bg-slate-950 border border-slate-700 rounded-lg text-xs font-semibold text-slate-100 px-2 py-1"
+              className="bg-[#141210] border border-[#3E362E] rounded-lg text-xs font-semibold text-[#EAE2D8] px-2 py-1"
             >
               {roles.map((r, i) => (
                 <option key={i} value={`${r.id}${r.cat ? `_${r.cat}` : ''}`}>
@@ -203,21 +203,21 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenC
             </select>
           </div>
 
-          <div className="flex items-center justify-around pt-2 text-xs text-slate-400 border-t border-slate-800/80">
+          <div className="flex items-center justify-around pt-2 text-xs text-[#8C8479] border-t border-[#362F28]">
             <button
               type="button"
               onClick={() => handleNavClick('privacy')}
-              className="flex items-center space-x-1 hover:text-cyan-400"
+              className="flex items-center space-x-1 hover:text-[#C5A880]"
             >
-              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              <FileText className="w-3.5 h-3.5 text-[#C5A880]" />
               <span>Privacy</span>
             </button>
             <button
               type="button"
               onClick={() => handleNavClick('terms')}
-              className="flex items-center space-x-1 hover:text-indigo-400"
+              className="flex items-center space-x-1 hover:text-[#D4AF37]"
             >
-              <Scale className="w-3.5 h-3.5 text-indigo-400" />
+              <Scale className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Terms</span>
             </button>
           </div>

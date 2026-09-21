@@ -7,56 +7,56 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigateTab }) => {
   return (
-    <footer className="w-full bg-[#05080f] border-t border-slate-800 text-slate-300 py-8 px-4 lg:px-8 mt-auto z-20">
+    <footer className="w-full bg-[#0E0D0B] border-t border-[#2E2721] text-[#D8CEBF] py-8 px-4 lg:px-8 mt-auto z-20">
       <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Left: Branding & Status */}
         <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#D4AF37] via-[#C5A880] to-[#8C6D53] flex items-center justify-center text-[#141210] shadow-md shadow-[#A37B5C]/20">
               <Shield className="w-4 h-4" />
             </div>
-            <span className="font-bold text-white tracking-wide text-sm">MA-IMS Platform</span>
+            <span className="font-bold text-[#F7F3EE] tracking-wide text-sm font-serif">MA-IMS Platform</span>
           </div>
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-[#232B24] border border-[#3A4A3C] text-[#B5C99A] text-xs font-mono">
+            <span className="w-2 h-2 rounded-full bg-[#B5C99A] animate-pulse" />
             <span>ITIL Multi-Agent Engine Online</span>
           </div>
         </div>
 
         {/* Center: Legal & Navigation Links */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-slate-300">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-[#D8CEBF]">
           <button
             type="button"
             onClick={() => onNavigateTab('privacy')}
-            className="hover:text-cyan-400 transition-colors flex items-center space-x-1 cursor-pointer"
+            className="hover:text-[#C5A880] transition-colors flex items-center space-x-1 cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5 text-cyan-400" />
+            <FileText className="w-3.5 h-3.5 text-[#C5A880]" />
             <span>Privacy Policy</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigateTab('terms')}
-            className="hover:text-indigo-400 transition-colors flex items-center space-x-1 cursor-pointer"
+            className="hover:text-[#D4AF37] transition-colors flex items-center space-x-1 cursor-pointer"
           >
-            <Scale className="w-3.5 h-3.5 text-indigo-400" />
+            <Scale className="w-3.5 h-3.5 text-[#D4AF37]" />
             <span>Terms & Conditions</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigateTab('ontology')}
-            className="hover:text-emerald-400 transition-colors cursor-pointer"
+            className="hover:text-[#C5A880] transition-colors cursor-pointer"
           >
             <span>OWL Ontology</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigateTab('sla')}
-            className="hover:text-amber-400 transition-colors cursor-pointer"
+            className="hover:text-[#E0B589] transition-colors cursor-pointer"
           >
             <span>SLA Performance</span>
           </button>
           <a
-            href="https://github.com/Jishnu-cmd/b-12-incident-managment-agent"
+            href="https://github.com/BatchC12/Ai-powered-incident-management-agent"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-white transition-colors flex items-center space-x-1"
@@ -69,7 +69,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateTab }) => {
         </div>
 
         {/* Right: Academic Attribution */}
-        <div className="text-xs text-slate-400 text-center md:text-right font-mono">
+        <div className="text-xs text-[#8C8479] text-center md:text-right font-mono">
           <span>Batch CSM-C12 • VVIT</span>
           <span className="mx-2">•</span>
           <span>Latrache et al. (2015)</span>

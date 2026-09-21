@@ -179,16 +179,16 @@ export const AdminPanel: React.FC = () => {
         <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-              <Sliders className="w-4 h-4 text-cyan-400" />
+              <Sliders className="w-4 h-4 text-[#C5A880]" />
               <span>OWL Matchmaking Weights (FR-22)</span>
             </h2>
-            <div className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs font-bold">
+            <div className="px-2.5 py-1 rounded-lg bg-[#C5A880]/15 border border-[#C5A880]/30 text-[#D4AF37] font-mono text-xs font-bold">
               Threshold: {threshold.toFixed(1)}
             </div>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
             Tune weight factors for the 4-tuple tags. Threshold is computed dynamically per Section 13.1:{' '}
-            <code className="text-cyan-400 font-mono">3 × (Sfactor + Ofactor + Pfactor + Tfactor)</code>.
+            <code className="text-[#D4AF37] font-mono">3 × (Sfactor + Ofactor + Pfactor + Tfactor)</code>.
           </p>
 
           <form onSubmit={handleUpdateFactors} className="space-y-4 pt-2">
@@ -196,7 +196,7 @@ export const AdminPanel: React.FC = () => {
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Service Factor (Sfactor)</span>
-                  <span className="font-mono font-bold text-cyan-400">{factors.sfactor.toFixed(1)}</span>
+                  <span className="font-mono font-bold text-[#C5A880]">{factors.sfactor.toFixed(1)}</span>
                 </div>
                 <input
                   type="range"
@@ -205,14 +205,14 @@ export const AdminPanel: React.FC = () => {
                   step="0.1"
                   value={factors.sfactor}
                   onChange={(e) => setFactors({ ...factors, sfactor: parseFloat(e.target.value) })}
-                  className="w-full accent-cyan-400"
+                  className="w-full accent-[#C5A880]"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Object Factor (Ofactor)</span>
-                  <span className="font-mono font-bold text-cyan-400">{factors.ofactor.toFixed(1)}</span>
+                  <span className="font-mono font-bold text-[#C5A880]">{factors.ofactor.toFixed(1)}</span>
                 </div>
                 <input
                   type="range"
@@ -221,14 +221,14 @@ export const AdminPanel: React.FC = () => {
                   step="0.1"
                   value={factors.ofactor}
                   onChange={(e) => setFactors({ ...factors, ofactor: parseFloat(e.target.value) })}
-                  className="w-full accent-cyan-400"
+                  className="w-full accent-[#C5A880]"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Problem Factor (Pfactor)</span>
-                  <span className="font-mono font-bold text-cyan-400">{factors.pfactor.toFixed(1)}</span>
+                  <span className="font-mono font-bold text-[#C5A880]">{factors.pfactor.toFixed(1)}</span>
                 </div>
                 <input
                   type="range"
@@ -237,14 +237,14 @@ export const AdminPanel: React.FC = () => {
                   step="0.1"
                   value={factors.pfactor}
                   onChange={(e) => setFactors({ ...factors, pfactor: parseFloat(e.target.value) })}
-                  className="w-full accent-cyan-400"
+                  className="w-full accent-[#C5A880]"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Type Factor (Tfactor)</span>
-                  <span className="font-mono font-bold text-cyan-400">{factors.tfactor.toFixed(1)}</span>
+                  <span className="font-mono font-bold text-[#C5A880]">{factors.tfactor.toFixed(1)}</span>
                 </div>
                 <input
                   type="range"
@@ -253,14 +253,14 @@ export const AdminPanel: React.FC = () => {
                   step="0.1"
                   value={factors.tfactor}
                   onChange={(e) => setFactors({ ...factors, tfactor: parseFloat(e.target.value) })}
-                  className="w-full accent-cyan-400"
+                  className="w-full accent-[#C5A880]"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#8C6D53] to-[#A37B5C] hover:from-[#A37B5C] hover:to-[#C5A880] text-white font-bold text-xs shadow-lg shadow-[#8C6D53]/20 cursor-pointer transition-all"
             >
               Save Configuration & Recompute Threshold
             </button>
@@ -347,7 +347,7 @@ export const AdminPanel: React.FC = () => {
               <div className="flex justify-between text-[10px] text-slate-500 font-mono pt-1">
                 <span>Impact: {ci.impact_level}</span>
                 <span>Urgency: {ci.urgency_level}</span>
-                <span className="text-cyan-400">{ci.owner_team}</span>
+                <span className="text-[#C5A880]">{ci.owner_team}</span>
               </div>
             </div>
           ))}

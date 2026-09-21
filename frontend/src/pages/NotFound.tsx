@@ -34,7 +34,7 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigateTab, onOpenCreateM
         <button
           type="button"
           onClick={() => onNavigateTab('dashboard')}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 transition-all cursor-pointer"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#A37B5C] hover:bg-[#8C6D53] text-[#F7F3EE] font-bold text-xs shadow-lg shadow-[#8C6D53]/25 transition-all cursor-pointer"
         >
           <Home className="w-4 h-4" />
           <span>Back to Command Center</span>
