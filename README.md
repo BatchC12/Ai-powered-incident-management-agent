@@ -1,4 +1,4 @@
-# AI-Powered Incident Management Agent
+# AI-Powered Multi Agent Incident Management System
 
 > **Institution:** Vasireddy Venkatadri Institute of Technology (VVIT)  
 > **Department:** Computer Science & Engineering (Artificial Intelligence & Machine Learning)  
